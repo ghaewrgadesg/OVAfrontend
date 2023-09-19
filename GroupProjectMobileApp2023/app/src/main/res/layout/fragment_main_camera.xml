@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainCamera">
+
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="59dp"
+        android:src="@drawable/camera_button"
+        android:id="@+id/mainScreen"/>
+
+    <RelativeLayout
+        android:id="@+id/mainCamTop"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/icon_height"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="4dp">
+
+        <ImageView
+            android:layout_width="@dimen/icon_width"
+            android:layout_height="@dimen/icon_height"
+            android:src="@drawable/flash" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/topText"
+            android:fontFamily=""/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/mainCamBot">
+        <ImageView
+            android:layout_width="@dimen/icon_width"
+            android:layout_height="@dimen/icon_height"
+            android:background="@color/black"
+            android:id="@+id/gallery"
+            android:layout_alignParentLeft="true"/>
+
+        <ImageView
+            android:layout_width="@dimen/icon_width"
+            android:layout_height="@dimen/icon_height"
+            android:src="@drawable/camera_button"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
+</RelativeLayout>
