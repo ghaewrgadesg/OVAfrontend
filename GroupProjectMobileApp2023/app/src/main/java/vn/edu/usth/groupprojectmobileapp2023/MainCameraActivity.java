@@ -3,7 +3,11 @@ package vn.edu.usth.groupprojectmobileapp2023;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
+
+import android.content.ContentValues;
+import android.content.Context;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.AspectRatio;
 import androidx.camera.core.Camera;
@@ -20,23 +24,30 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.github.dhaval2404.imagepicker.ImagePicker;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 public class MainCameraActivity extends AppCompatActivity {
 
     private static final String TAG= "MainCameraActivity";
     private PreviewView previewView;
-
+    private ImageView cameraButton, imageView;
     private int cameraFacing = CameraSelector.LENS_FACING_BACK;
     private final ActivityResultLauncher<String> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
         @Override
@@ -51,9 +62,9 @@ public class MainCameraActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_main_camera);
-        ImageView imageView = (ImageView) findViewById(R.id.gallery);
+        imageView = (ImageView) findViewById(R.id.gallery);
         previewView = findViewById(R.id.mainScreen);
-
+        cameraButton = findViewById(R.id.cam_btn);
         if (ContextCompat.checkSelfPermission(MainCameraActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             activityResultLauncher.launch(Manifest.permission.CAMERA);
         } else {
@@ -64,12 +75,17 @@ public class MainCameraActivity extends AppCompatActivity {
         imageView.setOnClickListener(new View.OnClickListener(){
         @Override
         public void onClick(View v){
-            ImagePicker.with(MainCameraActivity.this)
-                    .crop()	    			//Crop image(Optional), Check Customization for more option
-                    .compress(1024)			//Final image size will be less than 1 MB(Optional)
-                    .maxResultSize(1080, 1080)	//Final image resolution will be less than 1080 x 1080(Optional)
-                    .galleryOnly()
-                    .start();
+            if (ContextCompat.checkSelfPermission(MainCameraActivity.this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
+                activityResultLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
+            } else {
+                ImagePicker.with(MainCameraActivity.this)
+                        .crop()	    			//Crop image(Optional), Check Customization for more option
+                        .compress(1024)			//Final image size will be less than 1 MB(Optional)
+                        .maxResultSize(1080, 1080)	//Final image resolution will be less than 1080 x 1080(Optional)
+                        .galleryOnly()
+                        .start();;
+            }
+
         }
     });
     }
@@ -94,12 +110,61 @@ public class MainCameraActivity extends AppCompatActivity {
 
                 Camera camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
 
+                cameraButton.setOnClickListener(new View.OnClickListener(){
+                    public void onClick(View view){
+                        takePicture(imageCapture);
+                    }
+                });
 
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
             }
         }, ContextCompat.getMainExecutor(this));
+    }
+
+    public void takePicture(ImageCapture imageCapture) {
+        // Get a stable reference of the modifiable image capture use case
+        if (imageCapture == null) {
+            return;
+        }
+        // Create time-stamped name and MediaStore entry
+        String name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+                .format(System.currentTimeMillis());
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
+
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image");
+        }
+
+        // Create output options object which contains file + metadata
+        ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions.Builder(
+                getContentResolver(),
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                contentValues
+        ).build();
+
+        // Set up image capture listener, which is triggered after the photo has been taken
+        imageCapture.takePicture(
+                outputOptions,
+                ContextCompat.getMainExecutor(this),
+                new ImageCapture.OnImageSavedCallback() {
+                    @Override
+                    public void onError(@NonNull ImageCaptureException exc) {
+                        Log.e(TAG, "Photo capture failed: " + exc.getMessage(), exc);
+                    }
+
+                    @Override
+                    public void onImageSaved(@NonNull ImageCapture.OutputFileResults output) {
+                        String msg = "Photo capture succeeded: " + output.getSavedUri();
+                        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, msg);
+                    }
+                }
+        );
     }
 
     private int aspectRatio(int width, int height) {
@@ -109,7 +174,6 @@ public class MainCameraActivity extends AppCompatActivity {
         }
         return AspectRatio.RATIO_16_9;
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
