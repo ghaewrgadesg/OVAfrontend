@@ -11,18 +11,73 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/icon_height"
         android:layout_alignParentTop="true"
-        android:background="@color/darkBlue"></RelativeLayout>
+        android:background="@color/darkBlue">
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/mainScreen"
-        android:layout_width="371dp"
-        android:layout_height="554dp"
-        android:layout_centerInParent="true"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginEnd="15dp"
-        android:layout_marginBottom="15dp"
-        android:background="@color/lightYellow" />
+        <ImageView
+            android:id="@+id/flashBtn"
+            android:layout_width="@dimen/icon_width"
+            android:layout_height="match_parent"
+            android:src="@drawable/flash"
+            android:layout_marginLeft="5dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/topText"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:fontFamily="sans-serif"
+            android:textSize="17dp"/>
+
+        <ImageView
+            android:id="@+id/infoBtn"
+            android:layout_width="@dimen/icon_width"
+            android:layout_height="@dimen/icon_height"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/info_button"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/middlePart"
+        android:layout_width="391dp"
+        android:layout_height="599dp"
+        android:layout_centerInParent="true">
+
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/mainScreen"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="15dp"
+            android:background="@color/gray" />
+
+        <LinearLayout
+            android:id="@+id/startCamCheck"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/icon_height"
+                android:src="@drawable/cam_outline" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/starCam" />
+        </LinearLayout>
+
+
+    </RelativeLayout>
+
 
 
 

@@ -11,4 +11,5 @@
     <color name="darkBlue">#213555</color>
     <color name="lightBlue">#4F709C</color>
     <color name="lightYellow">#E5D283</color>
+    <color name="gray">#dcdcdc</color>
 </resources>

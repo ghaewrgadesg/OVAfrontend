@@ -24,6 +24,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.Image;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -32,6 +33,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.github.dhaval2404.imagepicker.ImagePicker;
@@ -47,7 +49,7 @@ public class MainCameraActivity extends AppCompatActivity {
 
     private static final String TAG= "MainCameraActivity";
     private PreviewView previewView;
-    private ImageView cameraButton, imageView;
+    private ImageView cameraButton, imageView, flashButton;
     private int cameraFacing = CameraSelector.LENS_FACING_BACK;
     private final ActivityResultLauncher<String> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
         @Override
@@ -62,13 +64,23 @@ public class MainCameraActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_main_camera);
-        imageView = (ImageView) findViewById(R.id.gallery);
+        ImageView infoButton = findViewById(R.id.infoBtn);
+        imageView = findViewById(R.id.gallery);
         previewView = findViewById(R.id.mainScreen);
         cameraButton = findViewById(R.id.cam_btn);
+        flashButton = findViewById(R.id.flashBtn);
+        RelativeLayout middlePart = findViewById(R.id.middlePart);
         if (ContextCompat.checkSelfPermission(MainCameraActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             activityResultLauncher.launch(Manifest.permission.CAMERA);
         } else {
-            startCamera(cameraFacing);
+            middlePart.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    middlePart.removeView(findViewById(R.id.startCamCheck));
+                    startCamera(cameraFacing);
+                }
+            });
+
         }
 
 
@@ -84,10 +96,12 @@ public class MainCameraActivity extends AppCompatActivity {
                         .maxResultSize(1080, 1080)	//Final image resolution will be less than 1080 x 1080(Optional)
                         .galleryOnly()
                         .start();;
-            }
+                }
 
-        }
-    });
+            }
+        });
+
+
     }
 
     public void startCamera(int cameraFacing) {
@@ -116,6 +130,12 @@ public class MainCameraActivity extends AppCompatActivity {
                     }
                 });
 
+                flashButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        setFlashIcon(camera);
+                    }
+                });
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
@@ -162,11 +182,30 @@ public class MainCameraActivity extends AppCompatActivity {
                         String msg = "Photo capture succeeded: " + output.getSavedUri();
                         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, msg);
+                        imageView.setImageURI(output.getSavedUri());
                     }
                 }
         );
     }
 
+    private void setFlashIcon(Camera camera) {
+        if (camera.getCameraInfo().hasFlashUnit()) {
+            if (camera.getCameraInfo().getTorchState().getValue() == 0) {
+                camera.getCameraControl().enableTorch(true);
+                flashButton.setImageResource(R.drawable.noflash);
+            } else {
+                camera.getCameraControl().enableTorch(false);
+                flashButton.setImageResource(R.drawable.flash);
+            }
+        } else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), "Flash is not available currently", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
     private int aspectRatio(int width, int height) {
         double previewRatio = (double) Math.max(width, height) / Math.min(width, height);
         if (Math.abs(previewRatio - 4.0 / 3.0) <= Math.abs(previewRatio - 16.0 / 9.0)) {
