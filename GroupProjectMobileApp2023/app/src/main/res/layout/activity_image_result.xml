@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_image_result"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ImageResultActivity"
+    android:orientation="vertical">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/icon_height"
+        android:background="@color/darkBlue"
+        android:layout_alignParentTop="true">
+
+        <TextView
+            android:id="@+id/backBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:text="@string/back"
+            android:layout_marginLeft="20dp"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/topResultText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/translateIcon"
+            android:layout_marginRight="20dp"
+            android:layout_centerVertical="true"
+            android:text="@string/placeholder"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+
+        <ImageView
+            android:id="@+id/speakerIcon"
+            android:layout_width="@dimen/icon_width"
+            android:layout_height="@dimen/icon_height"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/speaker"/>
+
+        <ImageView
+            android:id="@+id/translateIcon"
+            android:layout_width="@dimen/icon_width"
+            android:layout_height="@dimen/icon_height"
+            android:layout_toLeftOf="@id/speakerIcon"
+            android:src="@drawable/translate_icon"/>
+
+    </RelativeLayout>
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true">
+
+        <ImageView
+            android:id="@+id/imageResult"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/catdog" />
+
+        <ImageView
+            android:id="@+id/objFrame"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:src="@drawable/semi_transparent_frame" />
+    </FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/icon_height"
+        android:background="@color/darkBlue"
+        android:layout_alignParentBottom="true">
+        <ImageView
+            android:id="@+id/previousObject"
+            android:layout_width="@dimen/icon_height"
+            android:layout_height="@dimen/icon_width"
+            android:src="@drawable/back_button"/>
+
+        <TextView
+            android:id="@+id/botResultText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/placeholder2"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+        <ImageView
+            android:id="@+id/nextObject"
+            android:layout_width="@dimen/icon_height"
+            android:layout_height="@dimen/icon_height"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/forward_button"/>
+    </RelativeLayout>
+
+</RelativeLayout>

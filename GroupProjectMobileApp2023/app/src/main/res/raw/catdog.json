@@ -1,0 +1,15 @@
+{
+    "description": "Detected objects",
+    "predictions": [
+        {
+            "bbox": {"x1": 219, "x2": 414, "y1": 245, "y2": 478},
+            "label": "cat",
+            "score": "0.91"
+        },
+    {
+            "bbox": {"x1": 367, "x2": 665, "y1": 125, "y2": 476},
+            "label": "dog",
+            "score": "0.94"
+        }
+    ]
+}

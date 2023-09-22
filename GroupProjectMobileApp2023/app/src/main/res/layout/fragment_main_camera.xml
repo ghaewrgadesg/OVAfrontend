@@ -24,11 +24,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
+            android:fontFamily="sans-serif"
             android:text="@string/topText"
             android:textAlignment="center"
             android:textColor="@color/white"
-            android:fontFamily="sans-serif"
-            android:textSize="17dp"/>
+            android:textSize="17dp" />
 
         <ImageView
             android:id="@+id/infoBtn"
@@ -51,10 +51,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_centerInParent="true"
-            android:layout_marginStart="15dp"
-            android:layout_marginTop="15dp"
-            android:layout_marginEnd="15dp"
-            android:layout_marginBottom="15dp"
             android:background="@color/gray" />
 
         <LinearLayout

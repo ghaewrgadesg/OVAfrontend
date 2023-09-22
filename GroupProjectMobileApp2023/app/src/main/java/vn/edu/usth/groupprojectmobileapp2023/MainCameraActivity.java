@@ -4,6 +4,7 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 
+import android.app.FragmentTransaction;
 import android.content.ContentValues;
 import android.content.Context;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -29,6 +30,7 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -40,6 +42,7 @@ import com.github.dhaval2404.imagepicker.ImagePicker;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -82,7 +85,9 @@ public class MainCameraActivity extends AppCompatActivity {
             });
 
         }
-
+        if (ContextCompat.checkSelfPermission(MainCameraActivity.this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED){
+            activityResultLauncher.launch(Manifest.permission.INTERNET);
+        }
 
         imageView.setOnClickListener(new View.OnClickListener(){
         @Override
@@ -91,9 +96,6 @@ public class MainCameraActivity extends AppCompatActivity {
                 activityResultLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
             } else {
                 ImagePicker.with(MainCameraActivity.this)
-                        .crop()	    			//Crop image(Optional), Check Customization for more option
-                        .compress(1024)			//Final image size will be less than 1 MB(Optional)
-                        .maxResultSize(1080, 1080)	//Final image resolution will be less than 1080 x 1080(Optional)
                         .galleryOnly()
                         .start();;
                 }
@@ -102,6 +104,12 @@ public class MainCameraActivity extends AppCompatActivity {
         });
 
 
+        infoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
     }
 
     public void startCamera(int cameraFacing) {
@@ -182,7 +190,7 @@ public class MainCameraActivity extends AppCompatActivity {
                         String msg = "Photo capture succeeded: " + output.getSavedUri();
                         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, msg);
-                        imageView.setImageURI(output.getSavedUri());
+                        openImageResult(output.getSavedUri());
                     }
                 }
         );
@@ -221,8 +229,17 @@ public class MainCameraActivity extends AppCompatActivity {
             //Image Uri will not be null for RESULT_OK
             Uri uri = data.getData();
             ImageView imageView = (ImageView) findViewById(R.id.gallery);
-            imageView.setImageURI(uri);
+            openImageResult(uri);
         }
+    }
+
+    private void openImageResult(Uri imageUri) {
+        Intent intent = new Intent(this, ImageResultActivity.class);
+
+        // Pass the image file path and recognized objects to the new Activity
+        intent.putExtra("imageUri", imageUri);
+        startActivity(intent);
+
     }
     @Override
     protected void onStart(){

@@ -1,0 +1,15 @@
+{
+    "description": "Detected objects",
+    "predictions": [
+        {
+            "bbox": {"x1": 15, "x2": 400, "y1": 140, "y2": 458},
+            "label": "tree",
+            "score": "0.88"
+        },
+        {
+            "bbox": {"x1":592, "x2": 1080, "y1": 487, "y2": 750},
+            "label": "lion",
+            "score": "0.92"
+        }
+    ]
+}

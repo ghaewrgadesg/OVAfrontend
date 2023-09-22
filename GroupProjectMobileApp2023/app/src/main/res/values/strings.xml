@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">GroupProjectMobileApp2023</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="topText">THE PROJECT IN THE GRP</string>
+    <string name="topText">THE SCANNER 2000</string>
     <string name="starCam">Tap here to start camera</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="placeholder">No object detected</string>
+    <string name="back">Back</string>
+    <string name="placeholder2">0/0</string>
 </resources>
