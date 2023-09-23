@@ -99,10 +99,9 @@ public class ImageResultActivity extends AppCompatActivity {
         });
         if (jsonIndex != 2) {
             try {
-                // Open the JSON file from the raw resources
                 Resources resources = getResources();
                 InputStream inputStream = resources.openRawResource(json.get(jsonIndex));
-                // Read the JSON content from the file
+
                 Scanner scanner = new Scanner(inputStream);
                 StringBuilder jsonString = new StringBuilder();
                 while (scanner.hasNextLine()) {
@@ -110,7 +109,6 @@ public class ImageResultActivity extends AppCompatActivity {
                 }
                 scanner.close();
 
-                // Parse the JSON string into a JSONObject
                 JSONObject jsonObject = new JSONObject(jsonString.toString());
 
 

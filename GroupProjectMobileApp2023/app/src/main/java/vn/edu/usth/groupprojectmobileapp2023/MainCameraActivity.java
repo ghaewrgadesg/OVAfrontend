@@ -72,6 +72,7 @@ public class MainCameraActivity extends AppCompatActivity {
         previewView = findViewById(R.id.mainScreen);
         cameraButton = findViewById(R.id.cam_btn);
         flashButton = findViewById(R.id.flashBtn);
+
         RelativeLayout middlePart = findViewById(R.id.middlePart);
         if (ContextCompat.checkSelfPermission(MainCameraActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             activityResultLauncher.launch(Manifest.permission.CAMERA);
@@ -188,7 +189,7 @@ public class MainCameraActivity extends AppCompatActivity {
                     @Override
                     public void onImageSaved(@NonNull ImageCapture.OutputFileResults output) {
                         String msg = "Photo capture succeeded: " + output.getSavedUri();
-                        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, msg);
                         openImageResult(output.getSavedUri());
                     }
