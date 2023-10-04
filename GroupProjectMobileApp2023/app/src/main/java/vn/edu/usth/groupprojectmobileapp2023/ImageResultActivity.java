@@ -3,6 +3,8 @@ package vn.edu.usth.groupprojectmobileapp2023;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
+import okhttp3.*;
+
 
 import android.content.res.Resources;
 import android.graphics.drawable.LayerDrawable;
@@ -46,6 +48,8 @@ public class ImageResultActivity extends AppCompatActivity {
     List<String> vnLabel = Arrays.asList("mèo", "chó", "cây", "sư tử");
     List<String> frLabel = Arrays.asList("chat", "chien", "arbre", "lion" );
     String languageCode = "EN";
+    static final String API_URL = "http://localhost:8000/api/v1/detection";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -163,7 +167,6 @@ public class ImageResultActivity extends AppCompatActivity {
                     topText.setText("No object detected");
                     bottomText.setText("0/0");
                 }
-                // Use the data as needed in your app
             } catch (JSONException e) {
                 e.printStackTrace();
             }
