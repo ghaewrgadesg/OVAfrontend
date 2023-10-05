@@ -1,19 +1,25 @@
 package vn.edu.usth.groupprojectmobileapp2023;
 
+import static com.google.android.material.internal.ContextUtils.getActivity;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
-import okhttp3.*;
 
 
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.drawable.LayerDrawable;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.Menu;
@@ -29,6 +35,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -37,6 +45,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 
 public class ImageResultActivity extends AppCompatActivity {
     ImageView previousButton, nextButton, speakerButton, translate,frame, mainImageView;
@@ -48,11 +67,15 @@ public class ImageResultActivity extends AppCompatActivity {
     List<String> vnLabel = Arrays.asList("mèo", "chó", "cây", "sư tử");
     List<String> frLabel = Arrays.asList("chat", "chien", "arbre", "lion" );
     String languageCode = "EN";
-    static final String API_URL = "http://localhost:8000/api/v1/detection";
-
+    static final String API_URL = "http://10.0.2.2:8000/api/v1/detection";
+    JSONObject jsonObject;
+    private Handler mHandler;
+    CountDownLatch countDownLatch = new CountDownLatch(1);
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        int test = 2;
+        Log.i("TEST", "The very beginning");
         setContentView(R.layout.activity_image_result);
         TextView backButton = findViewById(R.id.backBtn);
         Uri imageUri = getIntent().getParcelableExtra("imageUri");
@@ -66,23 +89,18 @@ public class ImageResultActivity extends AppCompatActivity {
         mainImageView.setImageURI(imageUri);
         translate = findViewById(R.id.translateIcon);
 
-        recognitionResult = new ArrayList<>();
-        ArrayList<Integer> json = new ArrayList<>() ;
-        json.add(R.raw.catdog);
-        json.add(R.raw.liontree);
 
-        if (imageUri.toString().contains("content://com.android.providers.media.documents/document/image%3A1000000051")) {
-            jsonIndex = 0;
-            Log.i("URI","catdog");
-        }
-        else if (imageUri.toString().contains("content://com.android.providers.media.documents/document/image%3A1000000050")){
-            jsonIndex = 1;
-            Log.i("URI","liontree");
-        }
-        else{
-            jsonIndex = 2;
-            Log.i("URI", "None");
-        }
+        recognitionResult = new ArrayList<>();
+        Thread worker2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                postImage(API_URL, imageUri);
+                Log.i("TEST","PAIN N SUFFERING");
+                return;
+
+            }
+        });
+
         Log.i("URI",imageUri.toString());
         textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
@@ -101,22 +119,48 @@ public class ImageResultActivity extends AppCompatActivity {
                 }
             }
         });
-        if (jsonIndex != 2) {
-            try {
-                Resources resources = getResources();
-                InputStream inputStream = resources.openRawResource(json.get(jsonIndex));
+        try {
+            Log.i("TEST", "Before the slaughter");
+            worker2.start();
+            countDownLatch.await();
 
-                Scanner scanner = new Scanner(inputStream);
-                StringBuilder jsonString = new StringBuilder();
-                while (scanner.hasNextLine()) {
-                    jsonString.append(scanner.nextLine());
+            Log.i("TEST","Await ended");
+            try{
+                if (jsonObject == null){
+                    Log.i("Json", "JSON OBJECT IS NULL");
+                    jsonObject = new JSONObject();
+
+                    // Add description field
+                    jsonObject.put("description", "Detected objects");
+
+                    // Create a JSON array for predictions
+                    JSONArray predictionsArray = new JSONArray();
+
+                    // Create a prediction object
+                    JSONObject predictionObject = new JSONObject();
+
+                    // Add bbox field to the prediction object
+                    JSONObject bboxObject = new JSONObject();
+                    bboxObject.put("x1", 442);
+                    bboxObject.put("x2", 982);
+                    bboxObject.put("y1", 199);
+                    bboxObject.put("y2", 1270);
+                    predictionObject.put("bbox", bboxObject);
+
+                    // Add label and score fields to the prediction object
+                    predictionObject.put("label", "cat");
+                    predictionObject.put("score", "0.93");
+
+                    // Add the prediction object to the predictions array
+                    predictionsArray.put(predictionObject);
+
+                    // Add the predictions array to the JSON object
                 }
-                scanner.close();
-
-                JSONObject jsonObject = new JSONObject(jsonString.toString());
-
-
+                else{
+                    Log.i("JSON", jsonObject.toString());
+                }
                 String description = jsonObject.getString("description");
+                Log.i("TEST", "After the slaughter");
                 Log.i("RESULT", description);
                 if (description.contains("Detected objects")) {
                     ArrayList<String> temp;
@@ -167,16 +211,21 @@ public class ImageResultActivity extends AppCompatActivity {
                     topText.setText("No object detected");
                     bottomText.setText("0/0");
                 }
-            } catch (JSONException e) {
+            }
+            catch (JSONException e){
                 e.printStackTrace();
             }
+
+        } catch (NullPointerException | InterruptedException e) {
+            e.printStackTrace();
         }
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                returnToCamera();
-            }
-        });
+
+    backButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            returnToCamera();
+        }
+    });
 
         nextButton.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -195,13 +244,18 @@ public class ImageResultActivity extends AppCompatActivity {
         speakerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (jsonIndex != 2) {
-                    String textToRead = recognitionResult.get(currentIndex - 1).get(4).toString();
-                    Toast.makeText(ImageResultActivity.this, "Trying: " + textToRead, Toast.LENGTH_SHORT).show();
-                    textToSpeech.speak(textToRead, TextToSpeech.QUEUE_FLUSH, null, null);
+                try{
+                    if (jsonObject.getString("description").contains("Detected objects")) {
+                        String textToRead = recognitionResult.get(currentIndex - 1).get(4).toString();
+                        Toast.makeText(ImageResultActivity.this, "Trying: " + textToRead, Toast.LENGTH_SHORT).show();
+                        textToSpeech.speak(textToRead, TextToSpeech.QUEUE_FLUSH, null, null);
+                    }
+                    else{
+                        Toast.makeText(ImageResultActivity.this, "No object", Toast.LENGTH_SHORT).show();
+                    }
                 }
-                else{
-                    textToSpeech.speak("TESTING Here", TextToSpeech.QUEUE_FLUSH, null, null);
+                catch (JSONException e){
+                    e.printStackTrace();
                 }
             }
         });
@@ -256,23 +310,10 @@ public class ImageResultActivity extends AppCompatActivity {
     }
 
     private void nextObject(ArrayList<ArrayList<String>> recognitionResult ) {
+
         if (currentIndex < recognitionResult.size()) {
             currentIndex++;
             String label = recognitionResult.get(currentIndex - 1).get(4);
-            switch (languageCode){
-                case "EN":
-                    label = engLabel.get(getIndex(label));
-                    textToSpeech.setLanguage(Locale.US);
-                    break;
-                case "FR":
-                    label = frLabel.get(getIndex(label));
-                    textToSpeech.setLanguage(Locale.FRENCH);
-                    break;
-                case "VN":
-                    label = vnLabel.get(getIndex(label));
-                    textToSpeech.setLanguage(Locale.US);
-                    break;
-            }
             recognitionResult.get(currentIndex - 1).set(4, label);
             topText.setText(recognitionResult.get(currentIndex - 1).get(4) + " - " + recognitionResult.get(currentIndex - 1).get(5));
             bottomText.setText(currentIndex + "/" + recognitionResult.size());
@@ -306,20 +347,6 @@ public class ImageResultActivity extends AppCompatActivity {
         if (currentIndex > 1) {
             currentIndex--;
             String label = recognitionResult.get(currentIndex - 1).get(4);
-            switch (languageCode){
-                case "EN":
-                    label = engLabel.get(getIndex(label));
-                    textToSpeech.setLanguage(Locale.US);
-                    break;
-                case "FR":
-                    label = frLabel.get(getIndex(label));
-                    textToSpeech.setLanguage(Locale.FRENCH);
-                    break;
-                case "VN":
-                    label = vnLabel.get(getIndex(label));
-                    textToSpeech.setLanguage(Locale.US);
-                    break;
-            }
             recognitionResult.get(currentIndex - 1).set(4, label);
             topText.setText(recognitionResult.get(currentIndex - 1).get(4) + " - " + recognitionResult.get(currentIndex - 1).get(5));
             bottomText.setText(currentIndex + "/" + recognitionResult.size());
@@ -421,5 +448,80 @@ public class ImageResultActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+    private String getRealPathFromURI(Uri contentUri) {
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Log.i("GETPATH", "Got data");
+        Cursor cursor = getContentResolver().query(contentUri, projection, null, null, null);
+        Log.i("GETPATH", "GOT RESOLVER");
+        if (cursor == null) {
+            Log.i("GETPATH", "CURSOR IS NULLED");
+            return contentUri.getPath();
+        } else {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            String filePath = cursor.getString(column_index);
+            cursor.close();
+            if (filePath != null){
+                Log.i("PATH", filePath);
+            }
+            else{
+                filePath = contentUri.getPath();
+                Log.i("PATH", "No Path" + filePath);
+            }
+
+            return filePath;
+        }
+    }
+    private void postImage(String url, Uri imageUri) {
+        Log.i("TEST", "getPath");
+        Log.i("TEST", imageUri.toString());
+        File imageFile = new File(getRealPathFromURI(imageUri));
+        Log.i("TEST", "HTTP");
+        OkHttpClient client = new OkHttpClient();
+        Log.i("TEST", "REQUESTBODY");
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("model", "yolov4")
+                .addFormDataPart("image", "image.jpeg",
+                        RequestBody.create(imageFile, MediaType.parse("image/jpeg")))
+                .build();
+        Log.i("TEST", "new REQUEST");
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .build();
+        Log.i("TEST", "new call");
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.i("RESPONSE", "Failure");
+                e.printStackTrace();
+                countDownLatch.countDown();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response == null){
+                    Log.i("RESPONSE", "NULL RESPONSE");
+                }
+                if (response.isSuccessful()) {
+                    Log.i("REPSPONSE", "not null" );
+                    final String responseBody = response.body().string();
+                    Log.i("RESPONSE",  responseBody);
+                    try{
+                        jsonObject = new JSONObject(responseBody);
+                    }catch (JSONException e){
+                        e.printStackTrace();
+                    }
+                    countDownLatch.countDown();
+                } else {
+                    Log.i("RESPONSE" , response.code() + " " + response.message() + " " + response.body().string());
+                    countDownLatch.countDown();
+                }
+            }
+        });
+
+    }
+
 
 }

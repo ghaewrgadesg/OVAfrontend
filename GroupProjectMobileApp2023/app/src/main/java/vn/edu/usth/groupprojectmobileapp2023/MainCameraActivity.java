@@ -57,9 +57,7 @@ public class MainCameraActivity extends AppCompatActivity {
     private final ActivityResultLauncher<String> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
         @Override
         public void onActivityResult(Boolean result) {
-            if (result){
-                startCamera(cameraFacing);
-            }
+
         }
     });
 
@@ -93,6 +91,7 @@ public class MainCameraActivity extends AppCompatActivity {
         imageView.setOnClickListener(new View.OnClickListener(){
         @Override
         public void onClick(View v){
+            Log.i(TAG, "GALLERY CLICKED");
             if (ContextCompat.checkSelfPermission(MainCameraActivity.this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
                 activityResultLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
             } else {
@@ -135,6 +134,8 @@ public class MainCameraActivity extends AppCompatActivity {
 
                 cameraButton.setOnClickListener(new View.OnClickListener(){
                     public void onClick(View view){
+
+                        Log.i(TAG, "CAMERA CLICKED");
                         takePicture(imageCapture);
                     }
                 });
@@ -239,6 +240,7 @@ public class MainCameraActivity extends AppCompatActivity {
 
         // Pass the image file path and recognized objects to the new Activity
         intent.putExtra("imageUri", imageUri);
+        finish();
         startActivity(intent);
 
     }
