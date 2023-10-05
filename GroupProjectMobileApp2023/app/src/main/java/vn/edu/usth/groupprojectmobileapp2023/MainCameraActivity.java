@@ -49,7 +49,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 public class MainCameraActivity extends AppCompatActivity {
-
+    private static final int PICK_IMAGE_REQUEST = 1;
     private static final String TAG= "MainCameraActivity";
     private PreviewView previewView;
     private ImageView cameraButton, imageView, flashButton;
@@ -70,6 +70,26 @@ public class MainCameraActivity extends AppCompatActivity {
         previewView = findViewById(R.id.mainScreen);
         cameraButton = findViewById(R.id.cam_btn);
         flashButton = findViewById(R.id.flashBtn);
+        ActivityResultLauncher<PickVisualMediaRequest> pickMedia =
+                registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+                    // Callback is invoked after the user selects a media item or closes the
+                    // photo picker.
+                    if (uri != null) {
+                        finish();
+                        openImageResult(uri);
+                        Log.d("PhotoPicker", "Selected URI: " + uri);
+                    } else {
+                        Log.d("PhotoPicker", "No media selected");
+                    }
+                });
+        imageView.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                // Launch the photo picker and let the user choose images and videos.
+                pickMedia.launch(new PickVisualMediaRequest.Builder()
+                        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                        .build());
+            }
+        });
 
         RelativeLayout middlePart = findViewById(R.id.middlePart);
         if (ContextCompat.checkSelfPermission(MainCameraActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
@@ -88,20 +108,6 @@ public class MainCameraActivity extends AppCompatActivity {
             activityResultLauncher.launch(Manifest.permission.INTERNET);
         }
 
-        imageView.setOnClickListener(new View.OnClickListener(){
-        @Override
-        public void onClick(View v){
-            Log.i(TAG, "GALLERY CLICKED");
-            if (ContextCompat.checkSelfPermission(MainCameraActivity.this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
-                activityResultLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
-            } else {
-                ImagePicker.with(MainCameraActivity.this)
-                        .galleryOnly()
-                        .start();;
-                }
-
-            }
-        });
 
 
         infoButton.setOnClickListener(new View.OnClickListener() {
