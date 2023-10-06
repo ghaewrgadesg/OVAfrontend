@@ -27,6 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,16 +62,16 @@ public class ImageResultActivity extends AppCompatActivity {
     ImageView previousButton, nextButton, speakerButton, translate,frame, mainImageView;
     TextView topText, bottomText;
     int currentIndex, jsonIndex;
+    ArrayList<String> translatedTexts;
     TextToSpeech textToSpeech;
     ArrayList<ArrayList<String>> recognitionResult;
-    List<String> engLabel = Arrays.asList("cat", "dog", "tree", "lion");
-    List<String> vnLabel = Arrays.asList("mèo", "chó", "cây", "sư tử");
-    List<String> frLabel = Arrays.asList("chat", "chien", "arbre", "lion" );
-    String languageCode = "EN";
+    String languageCode = "en", nextLanguageCode = "en";
     static final String API_URL = "http://10.0.2.2:8000/api/v1/detection";
     JSONObject jsonObject;
     private Handler mHandler;
     CountDownLatch countDownLatch = new CountDownLatch(1);
+    ProgressBar progressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,8 +89,8 @@ public class ImageResultActivity extends AppCompatActivity {
         speakerButton = findViewById(R.id.speakerIcon);
         mainImageView.setImageURI(imageUri);
         translate = findViewById(R.id.translateIcon);
-
-
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.INVISIBLE);
         recognitionResult = new ArrayList<>();
         Thread worker2 = new Thread(new Runnable() {
             @Override
@@ -128,33 +129,19 @@ public class ImageResultActivity extends AppCompatActivity {
             try{
                 if (jsonObject == null){
                     Log.i("Json", "JSON OBJECT IS NULL");
-                    jsonObject = new JSONObject();
+                    // Open the JSON file from the raw resources
+                    Resources resources = getResources();
+                    InputStream inputStream = resources.openRawResource(R.raw.catdog);
+                    // Read the JSON content from the file
+                    Scanner scanner = new Scanner(inputStream);
+                    StringBuilder jsonString = new StringBuilder();
+                    while (scanner.hasNextLine()) {
+                        jsonString.append(scanner.nextLine());
+                    }
+                    scanner.close();
 
-                    // Add description field
-                    jsonObject.put("description", "Detected objects");
-
-                    // Create a JSON array for predictions
-                    JSONArray predictionsArray = new JSONArray();
-
-                    // Create a prediction object
-                    JSONObject predictionObject = new JSONObject();
-
-                    // Add bbox field to the prediction object
-                    JSONObject bboxObject = new JSONObject();
-                    bboxObject.put("x1", 442);
-                    bboxObject.put("x2", 982);
-                    bboxObject.put("y1", 199);
-                    bboxObject.put("y2", 1270);
-                    predictionObject.put("bbox", bboxObject);
-
-                    // Add label and score fields to the prediction object
-                    predictionObject.put("label", "cat");
-                    predictionObject.put("score", "0.93");
-
-                    // Add the prediction object to the predictions array
-                    predictionsArray.put(predictionObject);
-
-                    // Add the predictions array to the JSON object
+                    // Parse the JSON string into a JSONObject
+                    JSONObject jsonObject = new JSONObject(jsonString.toString());
                 }
                 else{
                     Log.i("JSON", jsonObject.toString());
@@ -186,7 +173,7 @@ public class ImageResultActivity extends AppCompatActivity {
                         recognitionResult.add(temp);
                     }
                     currentIndex = 1;
-                    topText.setText(recognitionResult.get(currentIndex - 1).get(4) + " - " + recognitionResult.get(currentIndex - 1).get(5));
+                    topText.setText(recognitionResult.get(currentIndex - 1).get(4));
                     bottomText.setText(currentIndex + "/" + recognitionResult.size());
                     RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
                             RelativeLayout.LayoutParams.WRAP_CONTENT,
@@ -220,12 +207,12 @@ public class ImageResultActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-    backButton.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            returnToCamera();
-        }
-    });
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                returnToCamera();
+            }
+        });
 
         nextButton.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -272,35 +259,98 @@ public class ImageResultActivity extends AppCompatActivity {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
                         int id = item.getItemId();
+                        translatedTexts = new ArrayList<String>();
                         if (id == R.id.action_english) {
-                            languageCode = "EN";
-                            String label = recognitionResult.get(currentIndex - 1).get(4);
-                            label = engLabel.get(getIndex(label));
-                            textToSpeech.setLanguage(Locale.US);
-                            recognitionResult.get(currentIndex - 1).set(4, label);
-                            topText.setText(recognitionResult.get(currentIndex - 1).get(4) + " - " + recognitionResult.get(currentIndex - 1).get(5));
-                            return true;
+                            if (languageCode != "en"){
+                                nextLanguageCode = "en";
+
+                                try{
+                                    for (int i = 0; i < recognitionResult.size(); i++){
+                                        progressBar.setVisibility(View.VISIBLE);
+                                        countDownLatch = new CountDownLatch(1);
+                                        postTranslate(recognitionResult.get(i).get(4),nextLanguageCode);
+                                        countDownLatch.await();
+                                        progressBar.setVisibility(View.INVISIBLE);
+                                        Log.i("TRANSLATE", translatedTexts.get(i));
+                                        recognitionResult.get(i).set(4, translatedTexts.get(i));
+
+                                    }
+                                    textToSpeech.setLanguage(Locale.US);
+                                    topText.setText(recognitionResult.get(currentIndex - 1).get(4));
+                                    languageCode = "en";
+                                    return true;
+                                }
+                                catch(InterruptedException e){
+                                    e.printStackTrace();
+                                }
+
+                            }
+                            else {
+                                return true;
+                            }
+
                         }
                         if (id == R.id.action_vietnam) {
-                            String label = recognitionResult.get(currentIndex - 1).get(4);
-                            label = vnLabel.get(getIndex(label));
-                            textToSpeech.setLanguage(Locale.US);
-                            recognitionResult.get(currentIndex - 1).set(4, label);
-                            topText.setText(recognitionResult.get(currentIndex - 1).get(4) + " - " + recognitionResult.get(currentIndex - 1).get(5));
-                            languageCode = "VN";
-                            return true;
+                            if (languageCode != "vi"){
+                                nextLanguageCode = "vi";
+
+                                try{
+                                    for (int i = 0; i < recognitionResult.size(); i++){
+                                        progressBar.setVisibility(View.VISIBLE);
+                                        countDownLatch = new CountDownLatch(1);
+                                        postTranslate(recognitionResult.get(i).get(4),nextLanguageCode);
+                                        countDownLatch.await();
+                                        progressBar.setVisibility(View.INVISIBLE);
+                                        Log.i("TRANSLATE", translatedTexts.get(i));
+                                        recognitionResult.get(i).set(4, translatedTexts.get(i));
+
+                                    }
+                                    textToSpeech.setLanguage(Locale.US);
+                                    topText.setText(recognitionResult.get(currentIndex - 1).get(4));
+                                    languageCode = "vi";
+                                    return true;
+                                }
+                                catch(InterruptedException e){
+                                    e.printStackTrace();
+                                }
+
+                            }
+                            else {
+                                return true;
+                            }
                         }
                         if (id == R.id.action_french) {
-                            languageCode = "FR";
-                            String label = recognitionResult.get(currentIndex - 1).get(4);
-                            label = frLabel.get(getIndex(label));
-                            textToSpeech.setLanguage(Locale.FRENCH);
-                            recognitionResult.get(currentIndex - 1).set(4, label);
-                            topText.setText(recognitionResult.get(currentIndex - 1).get(4) + " - " + recognitionResult.get(currentIndex - 1).get(5));
-                            return true;
+                            if (languageCode != "fr"){
+                                nextLanguageCode = "fr";
+
+                                try{
+                                    for (int i = 0; i < recognitionResult.size(); i++){
+                                        progressBar.setVisibility(View.VISIBLE);
+                                        countDownLatch = new CountDownLatch(1);
+                                        Log.i("Translating","current index: "+ i + " out of: " + recognitionResult.size());
+                                        postTranslate(recognitionResult.get(i).get(4),nextLanguageCode);
+                                        countDownLatch.await();
+                                        progressBar.setVisibility(View.INVISIBLE);
+                                        Log.i("TRANSLATE", translatedTexts.get(i));
+                                        recognitionResult.get(i).set(4, translatedTexts.get(i));
+
+                                    }
+                                    textToSpeech.setLanguage(Locale.US);
+                                    topText.setText(recognitionResult.get(currentIndex - 1).get(4));
+                                    languageCode = "fr";
+                                    return true;
+                                }
+                                catch(InterruptedException e){
+                                    e.printStackTrace();
+                                }
+
+                            }
+                            else {
+                                return true;
+                            }
                         }
                         return false;
-                        }
+                    }
                 });
 
                 // Show the PopupMenu
@@ -315,7 +365,7 @@ public class ImageResultActivity extends AppCompatActivity {
             currentIndex++;
             String label = recognitionResult.get(currentIndex - 1).get(4);
             recognitionResult.get(currentIndex - 1).set(4, label);
-            topText.setText(recognitionResult.get(currentIndex - 1).get(4) + " - " + recognitionResult.get(currentIndex - 1).get(5));
+            topText.setText(recognitionResult.get(currentIndex - 1).get(4));
             bottomText.setText(currentIndex + "/" + recognitionResult.size());
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
                     RelativeLayout.LayoutParams.WRAP_CONTENT,
@@ -348,7 +398,7 @@ public class ImageResultActivity extends AppCompatActivity {
             currentIndex--;
             String label = recognitionResult.get(currentIndex - 1).get(4);
             recognitionResult.get(currentIndex - 1).set(4, label);
-            topText.setText(recognitionResult.get(currentIndex - 1).get(4) + " - " + recognitionResult.get(currentIndex - 1).get(5));
+            topText.setText(recognitionResult.get(currentIndex - 1).get(4));
             bottomText.setText(currentIndex + "/" + recognitionResult.size());
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
                     RelativeLayout.LayoutParams.WRAP_CONTENT,
@@ -389,64 +439,11 @@ public class ImageResultActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    private int getIndex(String item){
-        switch (item){
-            case "mèo":
-            case "chat":
-            case "cat":
-                return 0;
-            case "dog":
-            case "chien":
-            case "chó":
-                return 1;
-            case "tree":
-            case "cây":
-            case "arbre":
-                return 2;
-            case "lion":
-            case "sư tử":
-                return 3;
-            default:
-                return 4;
 
-        }
-    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.language_menu, menu);
         return true;
-    }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_english) {
-            languageCode = "EN";
-            String label = recognitionResult.get(currentIndex - 1).get(4);
-            label = engLabel.get(getIndex(label));
-            textToSpeech.setLanguage(Locale.US);
-            recognitionResult.get(currentIndex - 1).set(4, label);
-            topText.setText(recognitionResult.get(currentIndex - 1).get(4) + " - " + recognitionResult.get(currentIndex - 1).get(5));
-            return true;
-        }
-        if (id == R.id.action_vietnam) {
-            String label = recognitionResult.get(currentIndex - 1).get(4);
-            label = vnLabel.get(getIndex(label));
-            textToSpeech.setLanguage(Locale.US);
-            recognitionResult.get(currentIndex - 1).set(4, label);
-            topText.setText(recognitionResult.get(currentIndex - 1).get(4) + " - " + recognitionResult.get(currentIndex - 1).get(5));
-            languageCode = "VN";
-            return true;
-        }
-        if (id == R.id.action_french) {
-            languageCode = "FR";
-            String label = recognitionResult.get(currentIndex - 1).get(4);
-            label = frLabel.get(getIndex(label));
-            textToSpeech.setLanguage(Locale.FRENCH);
-            recognitionResult.get(currentIndex - 1).set(4, label);
-            topText.setText(recognitionResult.get(currentIndex - 1).get(4) + " - " + recognitionResult.get(currentIndex - 1).get(5));
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
     private String getRealPathFromURI(Uri contentUri) {
         String[] projection = {MediaStore.Images.Media.DATA};
@@ -522,6 +519,54 @@ public class ImageResultActivity extends AppCompatActivity {
         });
 
     }
+    private void postTranslate(String text, String targetLanguage){
+        OkHttpClient client = new OkHttpClient();
+        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
+        RequestBody body = RequestBody.create( "source_language="+languageCode+"&target_language="+targetLanguage+"&text="+text, mediaType);
+        Request request = new Request.Builder()
+                .url("https://text-translator2.p.rapidapi.com/translate")
+                .post(body)
+                .addHeader("content-type", "application/x-www-form-urlencoded")
+                .addHeader("X-RapidAPI-Key", "5fcf4c3962msh1278145855464bfp135e0bjsn330a6a9cf97a")
+                .addHeader("X-RapidAPI-Host", "text-translator2.p.rapidapi.com")
+                .build();
 
 
-}
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.i("RESPONSE", "Failure");
+                    e.printStackTrace();
+                    countDownLatch.countDown();
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response == null){
+                        Log.i("RESPONSE", "NULL RESPONSE");
+                    }
+                    if (response.isSuccessful()) {
+                        Log.i("REPSPONSE", "not null" );
+                        final String responseBody = response.body().string();
+                        Log.i("RESPONSE",  responseBody);
+                        try{
+                            jsonObject = new JSONObject(responseBody);
+                            JSONObject dataObject = jsonObject.getJSONObject("data");
+                            Log.i("RESPONSE",  dataObject.toString());
+                            translatedTexts.add(dataObject.getString("translatedText"));
+                            Log.i("RESPONSE", "THE SIZE IS: " + translatedTexts.size());
+                            Log.i("RESPONSE", translatedTexts.toString());
+                        }catch (JSONException e){
+                            e.printStackTrace();
+                        }
+                        countDownLatch.countDown();
+                    } else {
+                        Log.i("RESPONSE" , response.code() + " " + response.message() + " " + response.body().string());
+                        countDownLatch.countDown();
+                    }
+                }
+            });
+        }
+
+    }
+

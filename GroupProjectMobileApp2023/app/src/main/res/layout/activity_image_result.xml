@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".ImageResultActivity"
     android:orientation="vertical">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/icon_height"
@@ -59,13 +60,17 @@
             android:id="@+id/imageResult"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/catdog" />
+            android:src="@drawable/gallery"
+            />
 
         <ImageView
             android:id="@+id/objFrame"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:src="@drawable/semi_transparent_frame" />
+
+
+
     </FrameLayout>
 
     <RelativeLayout
@@ -95,5 +100,11 @@
             android:layout_alignParentRight="true"
             android:src="@drawable/forward_button"/>
     </RelativeLayout>
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/icon_height"
+        android:layout_margin="@dimen/icon_height"
+        android:layout_centerInParent="true"/>
 
 </RelativeLayout>
