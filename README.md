@@ -15,3 +15,8 @@ Nguyễn Quý Bảo - BI12-047
 
 Topic: Open Vision API frontend
 
+The default server of openVision API: https://api.openvisionapi.com/api/v1/detection is dead
+Hosting your own server is necessary: https://github.com/openvisionapi/ova-server
+
+You will also need your own api key for the translation api
+
