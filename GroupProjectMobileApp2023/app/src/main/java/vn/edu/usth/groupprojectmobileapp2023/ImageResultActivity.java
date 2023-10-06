@@ -265,16 +265,16 @@ public class ImageResultActivity extends AppCompatActivity {
                                 nextLanguageCode = "en";
 
                                 try{
+                                    progressBar.setVisibility(View.VISIBLE);
                                     for (int i = 0; i < recognitionResult.size(); i++){
-                                        progressBar.setVisibility(View.VISIBLE);
                                         countDownLatch = new CountDownLatch(1);
                                         postTranslate(recognitionResult.get(i).get(4),nextLanguageCode);
                                         countDownLatch.await();
-                                        progressBar.setVisibility(View.INVISIBLE);
                                         Log.i("TRANSLATE", translatedTexts.get(i));
                                         recognitionResult.get(i).set(4, translatedTexts.get(i));
 
                                     }
+                                    progressBar.setVisibility(View.INVISIBLE);
                                     textToSpeech.setLanguage(Locale.US);
                                     topText.setText(recognitionResult.get(currentIndex - 1).get(4));
                                     languageCode = "en";
@@ -293,18 +293,19 @@ public class ImageResultActivity extends AppCompatActivity {
                         if (id == R.id.action_vietnam) {
                             if (languageCode != "vi"){
                                 nextLanguageCode = "vi";
-
+                                progressBar.setVisibility(View.VISIBLE);
                                 try{
                                     for (int i = 0; i < recognitionResult.size(); i++){
-                                        progressBar.setVisibility(View.VISIBLE);
+
                                         countDownLatch = new CountDownLatch(1);
                                         postTranslate(recognitionResult.get(i).get(4),nextLanguageCode);
                                         countDownLatch.await();
-                                        progressBar.setVisibility(View.INVISIBLE);
+
                                         Log.i("TRANSLATE", translatedTexts.get(i));
                                         recognitionResult.get(i).set(4, translatedTexts.get(i));
 
                                     }
+                                    progressBar.setVisibility(View.INVISIBLE);
                                     textToSpeech.setLanguage(Locale.US);
                                     topText.setText(recognitionResult.get(currentIndex - 1).get(4));
                                     languageCode = "vi";
@@ -324,17 +325,19 @@ public class ImageResultActivity extends AppCompatActivity {
                                 nextLanguageCode = "fr";
 
                                 try{
+                                    progressBar.setVisibility(View.VISIBLE);
                                     for (int i = 0; i < recognitionResult.size(); i++){
-                                        progressBar.setVisibility(View.VISIBLE);
+
                                         countDownLatch = new CountDownLatch(1);
                                         Log.i("Translating","current index: "+ i + " out of: " + recognitionResult.size());
                                         postTranslate(recognitionResult.get(i).get(4),nextLanguageCode);
                                         countDownLatch.await();
-                                        progressBar.setVisibility(View.INVISIBLE);
+
                                         Log.i("TRANSLATE", translatedTexts.get(i));
                                         recognitionResult.get(i).set(4, translatedTexts.get(i));
 
                                     }
+                                    progressBar.setVisibility(View.INVISIBLE);
                                     textToSpeech.setLanguage(Locale.US);
                                     topText.setText(recognitionResult.get(currentIndex - 1).get(4));
                                     languageCode = "fr";
@@ -527,7 +530,7 @@ public class ImageResultActivity extends AppCompatActivity {
                 .url("https://text-translator2.p.rapidapi.com/translate")
                 .post(body)
                 .addHeader("content-type", "application/x-www-form-urlencoded")
-                .addHeader("X-RapidAPI-Key", "5fcf4c3962msh1278145855464bfp135e0bjsn330a6a9cf97a")
+                .addHeader("X-RapidAPI-Key", "nokey")
                 .addHeader("X-RapidAPI-Host", "text-translator2.p.rapidapi.com")
                 .build();
 
