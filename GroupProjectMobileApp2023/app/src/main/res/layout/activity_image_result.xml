@@ -28,9 +28,9 @@
             android:id="@+id/topResultText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toLeftOf="@id/translateIcon"
-            android:layout_marginRight="20dp"
-            android:layout_centerVertical="true"
+            android:layout_centerInParent="true"
+            android:layout_toRightOf="@id/backBtn"
+            android:layout_marginLeft="30dp"
             android:text="@string/placeholder"
             android:textAlignment="center"
             android:textColor="@color/white"
@@ -60,8 +60,7 @@
             android:id="@+id/imageResult"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/gallery"
-            />
+            android:src="@drawable/gallery" />
 
         <ImageView
             android:id="@+id/objFrame"
@@ -100,11 +99,11 @@
             android:layout_alignParentRight="true"
             android:src="@drawable/forward_button"/>
     </RelativeLayout>
+
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/icon_height"
-        android:layout_margin="@dimen/icon_height"
-        android:layout_centerInParent="true"/>
-
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
 </RelativeLayout>
