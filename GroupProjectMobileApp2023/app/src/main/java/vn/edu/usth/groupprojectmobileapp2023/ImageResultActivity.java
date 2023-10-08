@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.net.ProtocolException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -136,7 +137,7 @@ public class ImageResultActivity extends AppCompatActivity {
                     super.handleMessage(msg);
                     if (msg.what == 1) {
                         progressBar.setVisibility(View.GONE);
-
+                        //manipulate UI
                         try {
                             if (jsonObject == null){
                                 Log.i("Json", "JSON OBJECT IS NULL DEFAULTING TO PLACEHOLDER");
@@ -194,8 +195,8 @@ public class ImageResultActivity extends AppCompatActivity {
                                 int frameWidth = Integer.parseInt(recognitionResult.get(currentIndex - 1).get(1)) - Integer.parseInt(recognitionResult.get(currentIndex - 1).get(0));
                                 int frameHeight = Integer.parseInt(recognitionResult.get(currentIndex - 1).get(3)) - Integer.parseInt(recognitionResult.get(currentIndex - 1).get(2));
 
-                                layoutParams.height = frameHeight;
-                                layoutParams.width = frameWidth;
+                                layoutParams.height = frameWidth;
+                                layoutParams.width = frameHeight;
                                 frame.setLayoutParams(layoutParams);
                                 frame.requestLayout();
 
@@ -316,15 +317,7 @@ public class ImageResultActivity extends AppCompatActivity {
                             }
                         }
 
-                        if (id == R.id.action_vietnam) {
-                            if (languageCode != "vi"){
-                                nextLanguageCode = "vi";
-                                worker.start();
-                                languageCode = "vi";
 
-                            }
-                            return true;
-                        }
                         if (id == R.id.action_french) {
                             Log.i("MENU", "Menu chosen");
                             if (languageCode != "fr"){
@@ -520,7 +513,7 @@ public class ImageResultActivity extends AppCompatActivity {
                     .url("https://text-translator2.p.rapidapi.com/translate")
                     .post(body)
                     .addHeader("content-type", "application/x-www-form-urlencoded")
-                    .addHeader("X-RapidAPI-Key", "")
+                    .addHeader("X-RapidAPI-Key", "None")
                     .addHeader("X-RapidAPI-Host", "text-translator2.p.rapidapi.com")
                     .build();
 
@@ -535,29 +528,35 @@ public class ImageResultActivity extends AppCompatActivity {
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
-                    if (response == null){
-                        Log.i("RESPONSE", "NULL RESPONSE");
-                        mHandler.sendEmptyMessage(3);
-                    }
-                    if (response.isSuccessful()) {
-                        Log.i("REPSPONSE", "not null" );
-                        final String responseBody = response.body().string();
-                        Log.i("RESPONSE",  responseBody);
-                        try{
-                            jsonObject = new JSONObject(responseBody);
-                            JSONObject dataObject = jsonObject.getJSONObject("data");
-                            Log.i("RESPONSE",  dataObject.toString());
-                            translatedTexts.add(dataObject.getString("translatedText"));
-                            Log.i("RESPONSE", "THE SIZE IS: " + translatedTexts.size());
-                            Log.i("RESPONSE", translatedTexts.toString());
-                        }catch (JSONException e){
-                            e.printStackTrace();
+                    try{
+                        if (response == null){
+                            Log.i("RESPONSE", "NULL RESPONSE");
+                            mHandler.sendEmptyMessage(3);
                         }
-                        mHandler.sendEmptyMessage(2);
-                    } else {
-                        Log.i("RESPONSE" , response.code() + " " + response.message() + " " + response.body().string());
+                        if (response.isSuccessful()) {
+                            Log.i("REPSPONSE", "not null" );
+                            final String responseBody = response.body().string();
+                            Log.i("RESPONSE",  responseBody);
+                            try{
+                                jsonObject = new JSONObject(responseBody);
+                                JSONObject dataObject = jsonObject.getJSONObject("data");
+                                Log.i("RESPONSE",  dataObject.toString());
+                                translatedTexts.add(dataObject.getString("translatedText"));
+                                Log.i("RESPONSE", "THE SIZE IS: " + translatedTexts.size());
+                                Log.i("RESPONSE", translatedTexts.toString());
+                            }catch (JSONException e){
+                                e.printStackTrace();
+                            }
+                            mHandler.sendEmptyMessage(2);
+                        } else {
+                            Log.i("RESPONSE" , response.code() + " " + response.message() + " " + response.body().string());
+                            mHandler.sendEmptyMessage(3);
+                        }
+                    } catch (ProtocolException e){
+                        e.printStackTrace();
                         mHandler.sendEmptyMessage(3);
                     }
+
                 }
             });
         }

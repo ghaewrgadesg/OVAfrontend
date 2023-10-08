@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
-    tools:context=".MainCamera">
+    tools:context=".MainCamera"
+    android:orientation="vertical">
 
     <RelativeLayout
         android:id="@+id/mainCamTop"
@@ -41,8 +42,9 @@
 
     <RelativeLayout
         android:id="@+id/middlePart"
-        android:layout_width="391dp"
-        android:layout_height="599dp"
+        android:layout_width="match_parent"
+        android:padding="5dp"
+        android:layout_height="580dp"
         android:layout_centerInParent="true">
 
 
@@ -98,4 +100,4 @@
             android:id="@+id/cam_btn"
             android:src="@drawable/camera_button" />
     </RelativeLayout>
-</RelativeLayout>
+</LinearLayout>

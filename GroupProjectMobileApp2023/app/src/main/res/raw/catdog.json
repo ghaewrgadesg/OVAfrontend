@@ -1,5 +1,5 @@
 {
-    "description": "Detected objects",
+    "description": "No",
     "predictions": [
         {
             "bbox": {"x1": 219, "x2": 414, "y1": 245, "y2": 478},

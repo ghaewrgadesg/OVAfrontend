@@ -84,7 +84,7 @@ public class MainCameraActivity extends AppCompatActivity {
                 });
         imageView.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
-                // Launch the photo picker and let the user choose images and videos.
+                // Launch the photo picker.
                 pickMedia.launch(new PickVisualMediaRequest.Builder()
                         .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                         .build());
